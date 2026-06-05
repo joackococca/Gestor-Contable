@@ -46,7 +46,7 @@ class Datab ():
         return cursor.fetchall()
     
     def consultar(self, nombre=None, comprobante=None, fecha=None, tipo=None):
-        if not nombre or comprobante or fecha or tipo:
+        if not (nombre or comprobante or fecha or tipo):
             raise ValueError('Para consultar tiene que llenar al menos un campo')
 
         cursor = self.con.cursor()
@@ -77,11 +77,11 @@ class Datab ():
         return cursor.fetchall()
     
     def modificar(self, mi_id, monto=None, fecha=None, comprobante=None, nombre=None, descripcion=None, tipo=None):
-        if not monto or fecha or comprobante or nombre or descripcion or tipo:
+        if not (monto and fecha and comprobante and nombre and descripcion and tipo):
             raise ValueError('Debe seleccionar algun campo para poder seleccionarlo')
 
         cursor = self.con.cursor()
-        data=(monto, fecha, comprobante, nombre, descripcion, mi_id)
+        data=(monto, fecha, comprobante, nombre, descripcion, tipo, mi_id)
         sql='UPDATE gestor SET monto=?, fecha=?, comprobante=?, nombre=?, descripcion=?, tipo=? WHERE id=?'
         cursor.execute(sql, data)
         self.con.commit()
