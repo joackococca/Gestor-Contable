@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import Tk, W, messagebox
+from tkinter import Tk, W, messagebox, Toplevel
 from tkinter import ttk
 from controlador import Controlador
 
@@ -20,14 +20,25 @@ class Ventana():
         tab_ventas=ttk.Frame(notebook)
         tab_gastos=ttk.Frame(notebook)
         tab_resumen=ttk.Frame(notebook)
-        tab_buscar=ttk.Frame(notebook)
 
+        menu = tk.Menu(ven)
+        ven.config(menu=menu)
+
+        filemenu = tk.Menu(menu)
+        menu.add_cascade(label="Herramientas", menu=filemenu)
+        filemenu.add_command(label="Modificar", command=lambda:self.modificar_tree())
+        filemenu.add_command(label="Borrar")
+        filemenu.add_command(label="Buscar")
+        filemenu.add_separator()
+
+        helpmenu = tk.Menu(menu)
+        menu.add_cascade(label="Ayuda", menu=helpmenu)
+        helpmenu.add_command(label="Tutorial")
 
         notebook.add(tab_compras, text="Compras")
         notebook.add(tab_ventas, text="Ventas")
         notebook.add(tab_gastos, text="Gastos")
         notebook.add(tab_resumen, text="Resumen")
-        notebook.add(tab_buscar, text="Buscar")
 
         #################################################################
         ###################### R E S U M E N ############################
@@ -156,14 +167,23 @@ class Ventana():
         self.entry_e_v.grid(row=10, column=1, ipadx=30)
 
         self.var_opcion_a = tk.StringVar()
-        radio_cobrado=tk.Radiobutton(fr_new_registro_ventas, text="Cobrado", variable=self.var_opcion_a, value="Cobrado").grid(row=12, column=1)
-        radio_pendiente=tk.Radiobutton(fr_new_registro_ventas, text="Pendiente", variable=self.var_opcion_a, value="Pendiente").grid(row=13, column=1)
+        self.var_opcion_a.set("Pendiente")
+        radio_cobrado=tk.Radiobutton(fr_new_registro_ventas, text="Cobrado", variable=self.var_opcion_a, value="Cobrado")
+        radio_pendiente=tk.Radiobutton(fr_new_registro_ventas, text="Pendiente", variable=self.var_opcion_a, value="Pendiente")
         tk.Button(fr_new_registro_ventas, text="+ Guardar Venta", command=lambda:self.alta_vista()).grid(row=14, column=1)
 
+        radio_cobrado.grid(row=12, column=1)
+        radio_pendiente.grid(row=13, column=1)
+
         var_opcion_b = tk.StringVar()
-        radio_todos=tk.Radiobutton(fr_registro_ventas, text="Todos", variable=var_opcion_b, value=1).grid(row=1, column=0)
-        radio_pendiente_a=tk.Radiobutton(fr_registro_ventas, text="Pendiente", variable=var_opcion_b, value=2).grid(row=1, column=1)
-        radio_cobrado_a=tk.Radiobutton(fr_registro_ventas, text="Cobrado", variable=var_opcion_b, value=3).grid(row=1, column=2)
+        var_opcion_b.set(1)
+        radio_todos=tk.Radiobutton(fr_registro_ventas, text="Todos", variable=var_opcion_b, value=1)
+        radio_pendiente_a=tk.Radiobutton(fr_registro_ventas, text="Pendiente", variable=var_opcion_b, value=2)
+        radio_cobrado_a=tk.Radiobutton(fr_registro_ventas, text="Cobrado", variable=var_opcion_b, value=3)
+
+        radio_todos.grid(row=1, column=0)
+        radio_pendiente_a.grid(row=1, column=1)
+        radio_cobrado_a.grid(row=1, column=2)
 
         self.tree_ventas= ttk.Treeview(fr_registro_ventas)
         self.tree_ventas["columns"] = ("col1", "col2", "col3", "col4", "col5", "col6")
@@ -175,13 +195,15 @@ class Ventana():
         self.tree_ventas.column("col5", width=100)
         self.tree_ventas.column("col6", width=100)
         self.tree_ventas.heading("#0", text="ID")
-        self.tree_ventas.heading("col1", text="Cliente")
-        self.tree_ventas.heading("col2", text="Descripcion")
-        self.tree_ventas.heading("col3", text="Fecha")
-        self.tree_ventas.heading("col4", text="Comprobante")
-        self.tree_ventas.heading("col5", text="Monto")
+        self.tree_ventas.heading("col1", text="Monto")
+        self.tree_ventas.heading("col2", text="Fecha")
+        self.tree_ventas.heading("col3", text="Cliente")
+        self.tree_ventas.heading("col4", text="Descripcion")
+        self.tree_ventas.heading("col5", text="Comprobante")
         self.tree_ventas.heading("col6", text="Estado")
         self.tree_ventas.grid(row=2, column=1, ipady=15)
+
+        self.cargar_treeview()
 
         ven.mainloop()
 
@@ -214,10 +236,84 @@ class Ventana():
             return
 
         try:
-                self.objcont.alta_controlador(monto, fecha, cliente, descripcion, comprobante, estado)
-                messagebox.showinfo("Éxito", "El registro se guardó correctamente.")
-                self.limpiar_campos()
-                self.cargar_treeview()
+            self.objcont.alta_controlador(monto, fecha, cliente, descripcion, comprobante, estado)
+            messagebox.showinfo("Éxito", "El registro se guardó correctamente.")
+            self.limpiar_campos()
+            self.cargar_treeview()
 
         except Exception as e:
             messagebox.showerror("Error de sistema", f"No se pudo guardar el registro: {e}")
+
+    def obtener_seleccion(self):
+        seleccion=self.tree_ventas.selection()
+
+        if not seleccion:
+            messagebox.showwarning("Atención", "Por favor, selecciona una fila primero.")
+            return None
+        return seleccion[0]
+    
+    def modificar_tree(self):
+        fila_id=self.obtener_seleccion()
+
+        if fila_id is None:
+            return messagebox.showerror("Error", "No se selecciono ningun registro. Por favor, selecciona una fila primero.")
+        
+        datos=self.tree_ventas.item(fila_id, "values")
+        print(datos)
+        self.limpiar_campos()
+
+        def ventana_modificar():
+            top=Toplevel()
+            top.title("Modificar")
+
+            fr_modificar_registrov= tk.Frame(top, width=250, height=330, bd=2, relief="groove")
+            fr_modificar_registrov.grid(row=0, column=0 )
+
+            fr_modificar_registrov.grid_propagate(False)
+
+            label_titulo=tk.Label(fr_modificar_registrov, text="MODIFICAR REGISTRO", font=("Arial", 10, "bold"))
+            label_monto=tk.Label(fr_modificar_registrov, text="Monto ($)")
+            label_fecha=tk.Label(fr_modificar_registrov, text="Fecha")
+            label_cliente=tk.Label(fr_modificar_registrov, text="Cliente")
+            label_descripcion=tk.Label(fr_modificar_registrov, text="Descripcion")
+            label_comprobante=tk.Label(fr_modificar_registrov, text="Comprobante N°")
+            label_estado=tk.Label(fr_modificar_registrov, text="Estado")
+
+            label_titulo.grid(row=0, column=1, padx=58)
+            label_monto.grid(row=1, column=1)
+            label_fecha.grid(row=3, column=1)
+            label_cliente.grid(row=5, column=1)
+            label_descripcion.grid(row=7, column=1)
+            label_comprobante.grid(row=9, column=1)
+            label_estado.grid(row=11, column=1)
+
+            entry_a=tk.Entry(fr_modificar_registrov)
+            entry_b=tk.Entry(fr_modificar_registrov)
+            entry_c=tk.Entry(fr_modificar_registrov)
+            entry_d=tk.Entry(fr_modificar_registrov)
+            entry_e=tk.Entry(fr_modificar_registrov)
+
+            entry_a.grid(row=2, column=1, ipadx=30)
+            entry_b.grid(row=4, column=1, ipadx=30)
+            entry_c.grid(row=6, column=1, ipadx=30)
+            entry_d.grid(row=8, column=1, ipadx=30)
+            entry_e.grid(row=10, column=1, ipadx=30)
+
+            entry_a.insert(datos[0], "values")
+            entry_b.insert(datos[1], "values")
+            entry_c.insert(datos[2], "values")
+            entry_d.insert(datos[3], "values")
+            entry_e.insert(datos[4], "values")
+
+            var_opcion_modificar= tk.StringVar()
+            var_opcion_modificar.set(datos[-1], "values")
+            radio_cobrado=tk.Radiobutton(fr_modificar_registrov, text="Cobrado", variable=var_opcion_modificar, value="Cobrado")
+            radio_pendiente=tk.Radiobutton(fr_modificar_registrov, text="Pendiente", variable=var_opcion_modificar, value="Pendiente")
+            tk.Button(fr_modificar_registrov, text="Modificar Venta", command=lambda:self.alta_vista()).grid(row=14, column=1)
+
+            radio_cobrado.grid(row=12, column=1)
+            radio_pendiente.grid(row=13, column=1)
+
+            top.mainloop
+        
+        ventana_modificar()
