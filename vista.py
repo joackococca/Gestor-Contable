@@ -113,11 +113,11 @@ class Ventana():
         label_comprobante_c.grid(row=9, column=1)
         label_estado_c.grid(row=11, column=1)
 
-        entry_a_c=tk.Entry(fr_new_registro_compras).grid(row=2, column=1)
-        entry_b_c=tk.Entry(fr_new_registro_compras).grid(row=4, column=1)
-        entry_c_c=tk.Entry(fr_new_registro_compras).grid(row=6, column=1)
-        entry_d_c=tk.Entry(fr_new_registro_compras).grid(row=8, column=1)
-        entry_e_c=tk.Entry(fr_new_registro_compras).grid(row=10, column=1)
+        entry_a_c=tk.Entry(fr_new_registro_compras).grid(row=2, column=1, padx=50, pady=5)
+        entry_b_c=tk.Entry(fr_new_registro_compras).grid(row=4, column=1, padx=50, pady=5)
+        entry_c_c=tk.Entry(fr_new_registro_compras).grid(row=6, column=1, padx=50, pady=5)
+        entry_d_c=tk.Entry(fr_new_registro_compras).grid(row=8, column=1, padx=50, pady=5)
+        entry_e_c=tk.Entry(fr_new_registro_compras).grid(row=10, column=1, padx=50, pady=5)
 
         tk.Button(fr_new_registro_compras, text="Pagado").grid(row=12, column=0)
         tk.Button(fr_new_registro_compras, text="Pendiente").grid(row=12, column=2)
@@ -166,14 +166,13 @@ class Ventana():
         self.entry_d_v.grid(row=8, column=1, ipadx=30)
         self.entry_e_v.grid(row=10, column=1, ipadx=30)
 
-        self.var_opcion_a = tk.StringVar()
-        self.var_opcion_a.set("Pendiente")
-        radio_cobrado=tk.Radiobutton(fr_new_registro_ventas, text="Cobrado", variable=self.var_opcion_a, value="Cobrado")
-        radio_pendiente=tk.Radiobutton(fr_new_registro_ventas, text="Pendiente", variable=self.var_opcion_a, value="Pendiente")
-        tk.Button(fr_new_registro_ventas, text="+ Guardar Venta", command=lambda:self.alta_vista()).grid(row=14, column=1)
+        self.combobox_estado_v=ttk.Combobox(fr_new_registro_ventas, values=["", "Pendiente", "Cobrado"], state="readonly")
+        self.combobox_estado_v.grid(row=12, column=1, ipadx=30)
 
-        radio_cobrado.grid(row=12, column=1)
-        radio_pendiente.grid(row=13, column=1)
+        self.combobox_estado_v.set("")
+
+        button_guardar_v=tk.Button(fr_new_registro_ventas, text="+ Guardar venta", command=lambda:self.alta_vista())
+        button_guardar_v.grid(row=13, column=1, padx=50, pady=5)
 
         var_opcion_b = tk.StringVar()
         var_opcion_b.set(1)
@@ -198,9 +197,9 @@ class Ventana():
         self.tree_ventas.heading("col1", text="Monto")
         self.tree_ventas.heading("col2", text="Fecha")
         self.tree_ventas.heading("col3", text="Cliente")
-        self.tree_ventas.heading("col4", text="Descripcion")
-        self.tree_ventas.heading("col5", text="Comprobante")
-        self.tree_ventas.heading("col6", text="Estado")
+        self.tree_ventas.heading("col4", text="Comprobante")
+        self.tree_ventas.heading("col5", text="Estado")
+        self.tree_ventas.heading("col6", text="Descripcion")
         self.tree_ventas.grid(row=2, column=1, ipady=15)
 
         self.cargar_treeview()
@@ -220,8 +219,7 @@ class Ventana():
         self.entry_c_v.delete(0, tk.END)
         self.entry_d_v.delete(0, tk.END)
         self.entry_e_v.delete(0, tk.END)
-
-        self.var_opcion_a.set("")
+        self.combobox_estado_v.set("")
 
     def alta_vista(self):
         monto=self.entry_a_v.get()
@@ -229,14 +227,14 @@ class Ventana():
         cliente=self.entry_c_v.get()
         descripcion=self.entry_d_v.get()
         comprobante=self.entry_e_v.get()
-        estado=self.var_opcion_a.get()
+        estado=self.combobox_estado_v.get()
 
         if not (monto and fecha and cliente and comprobante and estado):
             messagebox.showwarning("Campos incompletos", "Por favor, llene todos los campos obligatorios.")
             return
 
         try:
-            self.objcont.alta_controlador(monto, fecha, cliente, descripcion, comprobante, estado)
+            self.objcont.alta_controlador(monto, fecha, cliente, comprobante, estado, descripcion)
             messagebox.showinfo("Éxito", "El registro se guardó correctamente.")
             self.limpiar_campos()
             self.cargar_treeview()
@@ -251,22 +249,24 @@ class Ventana():
             messagebox.showwarning("Atención", "Por favor, selecciona una fila primero.")
             return None
         return seleccion[0]
-    
+
     def modificar_tree(self):
         fila_id=self.obtener_seleccion()
 
         if fila_id is None:
             return messagebox.showerror("Error", "No se selecciono ningun registro. Por favor, selecciona una fila primero.")
         
-        datos=self.tree_ventas.item(fila_id, "values")
-        print(datos)
+        item = self.tree_ventas.item(fila_id)
+        self.registro_id = item["text"]
+        datos = item["values"]
+
         self.limpiar_campos()
 
-        def ventana_modificar():
-            top=Toplevel()
-            top.title("Modificar")
+        def ventana_modificar(datos):
+            self.top=Toplevel()
+            self.top.title("Modificar")
 
-            fr_modificar_registrov= tk.Frame(top, width=250, height=330, bd=2, relief="groove")
+            fr_modificar_registrov= tk.Frame(self.top, width=250, height=330, bd=2, relief="groove")
             fr_modificar_registrov.grid(row=0, column=0 )
 
             fr_modificar_registrov.grid_propagate(False)
@@ -287,33 +287,56 @@ class Ventana():
             label_comprobante.grid(row=9, column=1)
             label_estado.grid(row=11, column=1)
 
-            entry_a=tk.Entry(fr_modificar_registrov)
-            entry_b=tk.Entry(fr_modificar_registrov)
-            entry_c=tk.Entry(fr_modificar_registrov)
-            entry_d=tk.Entry(fr_modificar_registrov)
-            entry_e=tk.Entry(fr_modificar_registrov)
+            self.entry_a_modificar=tk.Entry(fr_modificar_registrov)
+            self.entry_b_modificar=tk.Entry(fr_modificar_registrov)
+            self.entry_c_modificar=tk.Entry(fr_modificar_registrov)
+            self.entry_d_modificar=tk.Entry(fr_modificar_registrov)
+            self.entry_e_modificar=tk.Entry(fr_modificar_registrov)
 
-            entry_a.grid(row=2, column=1, ipadx=30)
-            entry_b.grid(row=4, column=1, ipadx=30)
-            entry_c.grid(row=6, column=1, ipadx=30)
-            entry_d.grid(row=8, column=1, ipadx=30)
-            entry_e.grid(row=10, column=1, ipadx=30)
+            self.entry_a_modificar.grid(row=2, column=1, ipadx=30)
+            self.entry_b_modificar.grid(row=4, column=1, ipadx=30)
+            self.entry_c_modificar.grid(row=6, column=1, ipadx=30)
+            self.entry_d_modificar.grid(row=8, column=1, ipadx=30)
+            self.entry_e_modificar.grid(row=10, column=1, ipadx=30)
 
-            entry_a.insert(datos[0], "values")
-            entry_b.insert(datos[1], "values")
-            entry_c.insert(datos[2], "values")
-            entry_d.insert(datos[3], "values")
-            entry_e.insert(datos[4], "values")
+            self.entry_a_modificar.insert(0, datos[0]) #monto
+            self.entry_b_modificar.insert(0, datos[1]) #fecha
+            self.entry_c_modificar.insert(0, datos[2]) #cliente
+            self.entry_d_modificar.insert(0, datos[-1]) #descripcion
+            self.entry_e_modificar.insert(0, datos[3]) #comprobante
 
-            var_opcion_modificar= tk.StringVar()
-            var_opcion_modificar.set(datos[-1], "values")
-            radio_cobrado=tk.Radiobutton(fr_modificar_registrov, text="Cobrado", variable=var_opcion_modificar, value="Cobrado")
-            radio_pendiente=tk.Radiobutton(fr_modificar_registrov, text="Pendiente", variable=var_opcion_modificar, value="Pendiente")
-            tk.Button(fr_modificar_registrov, text="Modificar Venta", command=lambda:self.alta_vista()).grid(row=14, column=1)
+            estado = datos[4] #estado
 
-            radio_cobrado.grid(row=12, column=1)
-            radio_pendiente.grid(row=13, column=1)
+            self.combobox_estado_modificar=ttk.Combobox(fr_modificar_registrov, values=["", "Pendiente", "Cobrado"], state="readonly")
+            self.combobox_estado_modificar.grid(row=12, column=1, ipadx=30)
+            self.combobox_estado_modificar.set(estado)
 
-            top.mainloop
+            button_guardar=tk.Button(fr_modificar_registrov, text="Guardar cambios", command=lambda: self.modificar_vista() )
+            button_guardar.grid(row=13, column=1, padx=50, pady=5)
+
+            self.top.mainloop
         
-        ventana_modificar()
+        ventana_modificar(datos)
+    
+    def modificar_vista(self,):
+        
+        monto=self.entry_a_modificar.get()
+        fecha=self.entry_b_modificar.get()
+        cliente=self.entry_c_modificar.get()
+        descripcion=self.entry_d_modificar.get()
+        comprobante=self.entry_e_modificar.get()
+        estado=self.combobox_estado_modificar.get()
+
+        if not (monto and fecha and cliente and comprobante and estado):
+            messagebox.showwarning("Campos incompletos", "Por favor, llene todos los campos obligatorios.")
+            return
+        
+        try:
+            self.objcont.modificar_controlador(self.registro_id, monto, fecha, cliente, comprobante, estado, descripcion)
+            messagebox.showinfo("Éxito", "El registro se modificó correctamente.")
+            self.limpiar_campos()
+            self.cargar_treeview()
+            self.top.destroy()
+
+        except Exception as e:
+            messagebox.showerror("Error de sistema", f"No se pudo modificar el registro: {e}")

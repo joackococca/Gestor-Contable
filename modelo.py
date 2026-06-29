@@ -12,19 +12,19 @@ class Datab ():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             monto REAL NOT NULL,
             fecha TEXT NOT NULL,
+            cliente TEXT NOT NULL,
             comprobante TEXT NOT NULL,
-            nombre TEXT NOT NULL,
-            tipo TEXT NOT NULL,
+            estado TEXT NOT NULL,
             descripcion TEXT
         )
         """
         cursor.execute(sql)
         self.con.commit()
 
-    def insertar (self, monto, fecha, comprobante, nombre, tipo, descripcion=None):
+    def insertar (self, monto, fecha, cliente, comprobante, estado, descripcion=None):
         cursor = self.con.cursor()
-        sql = "INSERT INTO gestor (monto, fecha, comprobante, nombre, tipo, descripcion) VALUES (?, ?, ?, ?, ?, ?)"
-        data = (monto, fecha, comprobante, nombre, tipo, descripcion)
+        sql = "INSERT INTO gestor (monto, fecha, cliente, comprobante, estado, descripcion) VALUES (?, ?, ?, ?, ?, ?)"
+        data = (monto, fecha, cliente, comprobante, estado, descripcion)
         cursor.execute(sql, data)
         self.con.commit()
 
@@ -45,17 +45,17 @@ class Datab ():
         cursor.execute(sql)
         return cursor.fetchall()
     
-    def consultar(self, nombre=None, comprobante=None, fecha=None, tipo=None):
-        if not (nombre or comprobante or fecha or tipo):
+    def consultar(self, cliente=None, comprobante=None, fecha=None, estado=None):
+        if not (cliente or comprobante or fecha or estado):
             raise ValueError('Para consultar tiene que llenar al menos un campo')
 
         cursor = self.con.cursor()
         condiciones = []
         valores = []
         
-        if nombre:
-            condiciones.append("nombre LIKE ?")
-            valores.append(f"%{nombre}%")
+        if cliente:
+            condiciones.append("cliente LIKE ?")
+            valores.append(f"%{cliente}%")
         
         if comprobante:
             condiciones.append("comprobante LIKE ?")
@@ -65,9 +65,9 @@ class Datab ():
             condiciones.append("fecha = ?")
             valores.append(fecha)
 
-        if tipo:
-            condiciones.append('tipo = ?')
-            valores.append(tipo)
+        if estado:
+            condiciones.append('estado = ?')
+            valores.append(estado)
         
         sql = "SELECT * FROM gestor"
         if condiciones:
@@ -76,12 +76,12 @@ class Datab ():
         cursor.execute(sql, valores)
         return cursor.fetchall()
     
-    def modificar(self, mi_id, monto=None, fecha=None, comprobante=None, nombre=None, descripcion=None, tipo=None):
-        if not (monto and fecha and comprobante and nombre and descripcion and tipo):
-            raise ValueError('Debe seleccionar algun campo para poder seleccionarlo')
-
+    def modificar(self, mi_id, monto, fecha, cliente, comprobante, estado, descripcion=None):
+        if not (monto and fecha and cliente and comprobante and estado):
+            raise ValueError('Debe seleccionar algun campo para poder modificar el registro')
+        
         cursor = self.con.cursor()
-        data=(monto, fecha, comprobante, nombre, descripcion, tipo, mi_id)
-        sql='UPDATE gestor SET monto=?, fecha=?, comprobante=?, nombre=?, descripcion=?, tipo=? WHERE id=?'
+        data=(monto, fecha, cliente, comprobante, estado, descripcion, mi_id)
+        sql='UPDATE gestor SET monto=?, fecha=?, cliente=?, comprobante=?, estado=?, descripcion=? WHERE id=?'
         cursor.execute(sql, data)
         self.con.commit()
