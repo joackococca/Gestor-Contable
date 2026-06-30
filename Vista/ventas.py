@@ -1,51 +1,13 @@
 import tkinter as tk
-from tkinter import Tk, W, messagebox, Toplevel
-from tkinter import ttk
-from controlador import Controlador
+from tkinter import ttk, messagebox, Toplevel, W
 
 
 
-class Ventana():
-    def __init__(self):
-        ven = Tk()
-        ven.title("Gestor Contable")
-        ven.geometry("1125x400")
-
-        self.objcont= Controlador()
-
-        notebook= ttk.Notebook(ven)
-        notebook.grid(row=0, column=0, padx=10)
-
-        tab_compras=ttk.Frame(notebook)
-        tab_ventas=ttk.Frame(notebook)
-        tab_gastos=ttk.Frame(notebook)
-        tab_resumen=ttk.Frame(notebook)
-        tab_buscador=ttk.Frame(notebook)
-
-        menu = tk.Menu(ven)
-        ven.config(menu=menu)
-
-        filemenu = tk.Menu(menu)
-        menu.add_cascade(label="Herramientas", menu=filemenu)
-        filemenu.add_command(label="Modificar", command=lambda:self.modificar_tree())
-        filemenu.add_command(label="Borrar", command=lambda:self.borrar_vista())
-        filemenu.add_separator()
-
-        helpmenu = tk.Menu(menu)
-        menu.add_cascade(label="Ayuda", menu=helpmenu)
-        helpmenu.add_command(label="Tutorial")
-
-        notebook.add(tab_compras, text="Compras")
-        notebook.add(tab_ventas, text="Ventas")
-        notebook.add(tab_gastos, text="Gastos")
-        notebook.add(tab_resumen, text="Resumen")
-        notebook.add(tab_buscador, text="Buscador")
-
-        ###################################################################
-        ###################### V E N T A S ################################
-
-        fr_new_registro_ventas= tk.Frame(tab_ventas, width=250, height=330, bd=2, relief="groove")
-        fr_registro_ventas= tk.Frame(tab_ventas, width=850, height=330, bd=2, relief="groove")
+class SeccionVentas:
+    def __init__(self, parent, controlador):
+        self.objcont = controlador
+        fr_new_registro_ventas= tk.Frame(parent, width=250, height=330, bd=2, relief="groove")
+        fr_registro_ventas= tk.Frame(parent, width=850, height=330, bd=2, relief="groove")
         fr_new_registro_ventas.grid(row=0, column=0 )
         fr_registro_ventas.grid(row=0, column=1)
 
@@ -129,8 +91,6 @@ class Ventana():
         self.tree_ventas.grid(row=2, column=1, ipady=15)
 
         self.cargar_treeview()
-
-        ven.mainloop()
 
     def cargar_treeview(self):
         self.tree_ventas.delete(*self.tree_ventas.get_children())

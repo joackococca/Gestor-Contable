@@ -45,7 +45,7 @@ class Datab ():
         cursor.execute(sql)
         return cursor.fetchall()
     
-    def consultar(self, cliente=None, comprobante=None, fecha=None, estado=None):
+    def consultar(self, fecha=None, comprobante=None, cliente=None, estado=None):
         if not (cliente or comprobante or fecha or estado):
             raise ValueError('Para consultar tiene que llenar al menos un campo')
 

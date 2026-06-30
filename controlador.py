@@ -9,7 +9,7 @@ class Controlador():
         return objmodelo.borrar(mi_id)
     
     def consultar_controlador(self, fecha=None, comprobante=None, cliente=None, estado=None):
-        return objmodelo.consultar(fecha, cliente, comprobante, estado)
+        return objmodelo.consultar(fecha=fecha, cliente=cliente, comprobante=comprobante, estado=estado)
     
     def consultar_todos_controlador(self, ):
         return objmodelo.consultar_todos()
