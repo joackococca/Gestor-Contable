@@ -90,14 +90,26 @@ class SeccionVentas:
         self.tree_ventas.heading("col6", text="Descripcion")
         self.tree_ventas.grid(row=2, column=1, ipady=15)
 
+        self.tree_ventas.tag_configure('pendiente', background='#ffcccc') 
+        self.tree_ventas.tag_configure('Cobrado', background='#ccffcc')
+
         self.cargar_treeview()
 
     def cargar_treeview(self):
         self.tree_ventas.delete(*self.tree_ventas.get_children())
-        resultado=self.objcont.consultar_todos_controlador()
+        resultado=self.objcont.consultar_controlador(tipo="Venta")
 
         for fila in resultado:
-            self.tree_ventas.insert("", "end", text=fila[0], values=fila[1:])
+            estado = fila[5]
+            tag = 'pendiente' if estado.lower() == 'pendiente' else 'Cobrado'
+
+            self.tree_ventas.insert(
+                "",
+                "end",
+                text=fila[0],
+                values=(fila[1], fila[2], fila[3], fila[5], fila[6], fila[4]),
+                tags=(tag,)
+            )
 
     def limpiar_campos(self):
         self.entry_a_v.delete(0, tk.END)
@@ -108,6 +120,7 @@ class SeccionVentas:
         self.combobox_estado_v.set("")
 
     def alta_vista(self):
+        tipo = "Venta"
         monto=self.entry_a_v.get()
         fecha=self.entry_b_v.get()
         cliente=self.entry_c_v.get()
@@ -120,7 +133,7 @@ class SeccionVentas:
             return
 
         try:
-            self.objcont.alta_controlador(monto, fecha, cliente, comprobante, estado, descripcion)
+            self.objcont.alta_controlador(tipo, monto, fecha, cliente, comprobante, estado, descripcion)
             messagebox.showinfo("Éxito", "El registro se guardó correctamente.")
             self.limpiar_campos()
             self.cargar_treeview()
@@ -188,7 +201,7 @@ class SeccionVentas:
             self.entry_a_modificar.insert(0, datos[0]) #monto
             self.entry_b_modificar.insert(0, datos[1]) #fecha
             self.entry_c_modificar.insert(0, datos[2]) #cliente
-            self.entry_d_modificar.insert(0, datos[-1]) #descripcion
+            self.entry_d_modificar.insert(0, datos[5]) #descripcion
             self.entry_e_modificar.insert(0, datos[3]) #comprobante
 
             estado = datos[4] #estado
@@ -250,9 +263,9 @@ class SeccionVentas:
         opcion = self.var_opcion_b.get()
 
         if opcion == "Todos":
-            resultado = self.objcont.consultar_todos_controlador()
+            resultado = self.objcont.consultar_controlador(tipo="Venta")
         else:
-            resultado = self.objcont.consultar_controlador(estado=opcion)
+            resultado = self.objcont.consultar_controlador(tipo="Venta", estado=opcion)
 
         self.tree_ventas.delete(*self.tree_ventas.get_children())
         for fila in resultado:

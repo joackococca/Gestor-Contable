@@ -2,6 +2,8 @@ from tkinter import ttk, Tk
 import tkinter as tk
 from controlador import Controlador 
 from Vista.ventas import SeccionVentas
+from Vista.compras import SeccionCompras
+from Vista.gastos import SeccionGastos
 
 class Ventana():
 
@@ -18,12 +20,16 @@ class Ventana():
         self.vistas= {}
 
         tab_compras=ttk.Frame(self.notebook)
+        self.seccion_compras_tab= SeccionCompras(tab_compras, self.objcont)
+        self.vistas[0]= self.seccion_compras_tab
 
         tab_ventas=ttk.Frame(self.notebook)
         self.seccion_ventas_tab= SeccionVentas(tab_ventas, self.objcont)
         self.vistas[1]= self.seccion_ventas_tab
 
         tab_gastos=ttk.Frame(self.notebook)
+        self.seccion_gastos_tab= SeccionGastos(tab_gastos, self.objcont)
+        self.vistas[2]= self.seccion_gastos_tab
 
         tab_resumen=ttk.Frame(self.notebook)
         tab_buscador=ttk.Frame(self.notebook)
@@ -34,7 +40,7 @@ class Ventana():
         filemenu = tk.Menu(menu)
         menu.add_cascade(label="Herramientas", menu=filemenu)
         filemenu.add_command(label="Modificar", command=lambda:self.ejecutar_modificacion())
-        filemenu.add_command(label="Borrar", command=lambda:self.borrar_vista())
+        filemenu.add_command(label="Borrar", command=lambda:self.ejecutar_borrar())
         filemenu.add_separator()
 
         helpmenu = tk.Menu(menu)
@@ -63,5 +69,22 @@ class Ventana():
                     vista_activa.modificar_tree()
                 else:
                     print("La vista actual no tiene el método 'modificar_tree'")
+            else:
+                print("No se encontró una vista válida para esta pestaña")
+
+    def ejecutar_borrar(self):
+            # A. Obtener el índice de la pestaña seleccionada
+            indice_actual = self.notebook.index("current")
+
+            # C. Verificar si tenemos una instancia guardada para ese índice
+            if indice_actual in self.vistas:
+                vista_activa = self.vistas[indice_actual]
+                
+                # D. Llamar al método específico de esa instancia
+                # Asumimos que todas las clases tienen el método 'borrar_vista'
+                if hasattr(vista_activa, 'borrar_vista'):
+                    vista_activa.borrar_vista()
+                else:
+                    print("La vista actual no tiene el método 'borrar_vista'")
             else:
                 print("No se encontró una vista válida para esta pestaña")

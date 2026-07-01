@@ -15,16 +15,17 @@ class Datab ():
             cliente TEXT NOT NULL,
             comprobante TEXT NOT NULL,
             estado TEXT NOT NULL,
-            descripcion TEXT
+            descripcion TEXT,
+            tipo TEXT
         )
         """
         cursor.execute(sql)
         self.con.commit()
 
-    def insertar (self, monto, fecha, cliente, comprobante, estado, descripcion=None):
+    def insertar (self, tipo, monto, fecha, cliente, comprobante, estado, descripcion=None):
         cursor = self.con.cursor()
-        sql = "INSERT INTO gestor (monto, fecha, cliente, comprobante, estado, descripcion) VALUES (?, ?, ?, ?, ?, ?)"
-        data = (monto, fecha, cliente, comprobante, estado, descripcion)
+        sql = "INSERT INTO gestor (tipo, monto, fecha, cliente, comprobante, estado, descripcion) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        data = (tipo, monto, fecha, cliente, comprobante, estado, descripcion)
         cursor.execute(sql, data)
         self.con.commit()
 
@@ -45,13 +46,16 @@ class Datab ():
         cursor.execute(sql)
         return cursor.fetchall()
     
-    def consultar(self, fecha=None, comprobante=None, cliente=None, estado=None):
-        if not (cliente or comprobante or fecha or estado):
+    def consultar(self, tipo=None, fecha=None, comprobante=None, cliente=None, estado=None):
+        if not (tipo or cliente or comprobante or fecha or estado):
             raise ValueError('Para consultar tiene que llenar al menos un campo')
 
         cursor = self.con.cursor()
         condiciones = []
         valores = []
+        if tipo:
+            condiciones.append("tipo = ?")
+            valores.append(tipo)
         
         if cliente:
             condiciones.append("cliente LIKE ?")
@@ -76,8 +80,8 @@ class Datab ():
         cursor.execute(sql, valores)
         return cursor.fetchall()
     
-    def modificar(self, mi_id, monto, fecha, cliente, comprobante, estado, descripcion=None):
-        if not (monto and fecha and cliente and comprobante and estado):
+    def modificar(self, mi_id,monto, fecha, cliente, comprobante, estado, descripcion=None):
+        if not (monto and fecha and cliente and estado):
             raise ValueError('Debe seleccionar algun campo para poder modificar el registro')
         
         cursor = self.con.cursor()
