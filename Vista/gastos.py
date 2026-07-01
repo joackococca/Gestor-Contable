@@ -4,8 +4,9 @@ from tkinter import ttk, messagebox, Toplevel, W
 
 
 class SeccionGastos:
-    def __init__(self, parent, controlador):
+    def __init__(self, parent, controlador, refrescar_resumen=None):
         self.objcont = controlador
+        self.refrescar_resumen = refrescar_resumen
         fr_new_registro_gastos= tk.Frame(parent, width=250, height=330, bd=2, relief="groove")
         fr_registro_gastos= tk.Frame(parent, width=700, height=330, bd=2, relief="groove")
         fr_new_registro_gastos.grid(row=0, column=0, padx=50)
@@ -132,6 +133,9 @@ class SeccionGastos:
 
         except Exception as e:
             messagebox.showerror("Error de sistema", f"No se pudo guardar el registro: {e}")
+        
+        if self.refrescar_resumen:
+            self.refrescar_resumen()
 
     def obtener_seleccion(self):
         seleccion=self.tree_gastos.selection()
@@ -225,6 +229,9 @@ class SeccionGastos:
 
         except Exception as e:
             messagebox.showerror("Error de sistema", f"No se pudo modificar el registro: {e}")
+        
+        if self.refrescar_resumen:
+            self.refrescar_resumen()
 
     def borrar_vista(self):
         fila_id=self.obtener_seleccion()
@@ -245,6 +252,9 @@ class SeccionGastos:
             except Exception as e:
                 messagebox.showerror("Error de sistema", f"No se pudo borrar el registro: {e}")
 
+        if self.refrescar_resumen:
+            self.refrescar_resumen()
+
     def filtrar_treeview(self):
         opcion = self.var_opcion_b.get()
 
@@ -255,9 +265,12 @@ class SeccionGastos:
 
         self.tree_gastos.delete(*self.tree_gastos.get_children())
         for fila in resultado:
+            estado = fila[5]
+            tag = 'pendiente' if estado.lower() == 'pendiente' else 'pagado'
             self.tree_gastos.insert(
                 "",
                 "end",
                 text=fila[0],
-                values=(fila[1], fila[2], fila[3], fila[5], fila[6])
+                values=(fila[1], fila[2], fila[3], fila[5], fila[6]),
+                tags=(tag,)
             )

@@ -4,8 +4,9 @@ from tkinter import ttk, messagebox, Toplevel, W
 
 
 class SeccionVentas:
-    def __init__(self, parent, controlador):
+    def __init__(self, parent, controlador, refrescar_resumen=None):
         self.objcont = controlador
+        self.refrescar_resumen = refrescar_resumen
         fr_new_registro_ventas= tk.Frame(parent, width=250, height=330, bd=2, relief="groove")
         fr_registro_ventas= tk.Frame(parent, width=850, height=330, bd=2, relief="groove")
         fr_new_registro_ventas.grid(row=0, column=0 )
@@ -107,7 +108,7 @@ class SeccionVentas:
                 "",
                 "end",
                 text=fila[0],
-                values=(fila[1], fila[2], fila[3], fila[5], fila[6], fila[4]),
+                values=(fila[1], fila[2], fila[3], fila[4], fila[5], fila[6]),
                 tags=(tag,)
             )
 
@@ -140,6 +141,9 @@ class SeccionVentas:
 
         except Exception as e:
             messagebox.showerror("Error de sistema", f"No se pudo guardar el registro: {e}")
+
+        if self.refrescar_resumen:
+            self.refrescar_resumen()
 
     def obtener_seleccion(self):
         seleccion=self.tree_ventas.selection()
@@ -240,6 +244,9 @@ class SeccionVentas:
         except Exception as e:
             messagebox.showerror("Error de sistema", f"No se pudo modificar el registro: {e}")
 
+        if self.refrescar_resumen:
+            self.refrescar_resumen()
+
     def borrar_vista(self):
         fila_id=self.obtener_seleccion()
 
@@ -258,6 +265,8 @@ class SeccionVentas:
                 self.cargar_treeview()
             except Exception as e:
                 messagebox.showerror("Error de sistema", f"No se pudo borrar el registro: {e}")
+        if self.refrescar_resumen:
+            self.refrescar_resumen()
 
     def filtrar_treeview(self):
         opcion = self.var_opcion_b.get()
@@ -269,4 +278,13 @@ class SeccionVentas:
 
         self.tree_ventas.delete(*self.tree_ventas.get_children())
         for fila in resultado:
-            self.tree_ventas.insert("", "end", text=fila[0], values=fila[1:])
+                estado = fila[5]
+                tag = 'pendiente' if estado.lower() == 'pendiente' else 'Cobrado'
+
+                self.tree_ventas.insert(
+                    "",
+                    "end",
+                    text=fila[0],
+                    values=fila[1:],
+                    tags=(tag,)
+                )

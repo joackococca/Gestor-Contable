@@ -4,6 +4,7 @@ from controlador import Controlador
 from Vista.ventas import SeccionVentas
 from Vista.compras import SeccionCompras
 from Vista.gastos import SeccionGastos
+from Vista.resumen import Resumen
 
 class Ventana():
 
@@ -20,18 +21,21 @@ class Ventana():
         self.vistas= {}
 
         tab_compras=ttk.Frame(self.notebook)
-        self.seccion_compras_tab= SeccionCompras(tab_compras, self.objcont)
+        self.seccion_compras_tab= SeccionCompras(tab_compras, self.objcont, self.actualizar_resumen)
         self.vistas[0]= self.seccion_compras_tab
 
         tab_ventas=ttk.Frame(self.notebook)
-        self.seccion_ventas_tab= SeccionVentas(tab_ventas, self.objcont)
+        self.seccion_ventas_tab= SeccionVentas(tab_ventas, self.objcont, self.actualizar_resumen)
         self.vistas[1]= self.seccion_ventas_tab
 
         tab_gastos=ttk.Frame(self.notebook)
-        self.seccion_gastos_tab= SeccionGastos(tab_gastos, self.objcont)
+        self.seccion_gastos_tab= SeccionGastos(tab_gastos, self.objcont, self.actualizar_resumen)
         self.vistas[2]= self.seccion_gastos_tab
 
         tab_resumen=ttk.Frame(self.notebook)
+        self.seccion_resumen_tab= Resumen(tab_resumen, self.objcont)
+        self.vistas[3]= self.seccion_resumen_tab
+
         tab_buscador=ttk.Frame(self.notebook)
         
         menu = tk.Menu(ven)
@@ -88,3 +92,7 @@ class Ventana():
                     print("La vista actual no tiene el método 'borrar_vista'")
             else:
                 print("No se encontró una vista válida para esta pestaña")
+
+    def actualizar_resumen(self):
+        if hasattr(self.seccion_resumen_tab, 'actualizar_datos'):
+            self.seccion_resumen_tab.actualizar_datos()
